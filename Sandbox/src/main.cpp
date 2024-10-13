@@ -1,9 +1,17 @@
 #include <Engine.h>
+#include <cstdlib>
+#include <exception>
+#include <iostream>
 
 int main(int argc, char** argv)
 {
-	auto engine = BE::Engine("BloxxEngine v0.0.1");
-	engine.Run();
-
-	return 0;
+	BE::Engine engine = {"BloxxEngine Sandbox"};
+	
+	try {
+		engine.Run();
+	} catch (const std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
 }
