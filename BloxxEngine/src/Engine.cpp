@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
+#include <cstdint>
 #include <cstring>
 #include <stdexcept>
 #include <vector>
@@ -23,7 +24,11 @@ void Engine::initWindow() {
 }
 
 // This function initializes Vulkan.
-void Engine::initVulkan() { createVulkanInstance(); }
+void Engine::initVulkan() {
+  createVulkanInstance();
+  setUpDebugMessenger();
+  pickPhysicalDevice();
+}
 
 void Engine::createVulkanInstance() {
   if (enableValidationLayers && !checkValidationLayerSupport()) {
@@ -50,12 +55,19 @@ void Engine::createVulkanInstance() {
 
   createInfo.enabledExtensionCount = (uint32_t)extensions.size();
   createInfo.ppEnabledExtensionNames = extensions.data();
+
+  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
   if (enableValidationLayers) {
     createInfo.enabledLayerCount =
         static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();
+
+    populateDebugMessengerCreateInfo(debugCreateInfo);
+    createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
   } else {
     createInfo.enabledLayerCount = 0;
+
+    createInfo.pNext = nullptr;
   }
 
   if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
@@ -103,8 +115,62 @@ std::vector<const char*> Engine::getRequiredExtensions() {
   return extensions;
 }
 
+void Engine::populateDebugMessengerCreateInfo(
+    VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+  createInfo = {};
+  createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+  createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+  createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+  createInfo.pfnUserCallback = debugCallback;
+}
+
 void Engine::setUpDebugMessenger() {
   if (!enableValidationLayers) return;
+
+  VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+  populateDebugMessengerCreateInfo(createInfo);
+
+  if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr,
+                                   &debugMessenger) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to set up debug messenger!");
+  }
+}
+
+void Engine::pickPhysicalDevice() {
+  uint32_t deviceCount = 0;
+  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+  if (deviceCount == 0) {
+    throw std::runtime_error("Failed to find GPUs with Vulkan support!");
+  }
+
+  std::vector<VkPhysicalDevice> devices(deviceCount);
+  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+  for (const auto& device : devices) {
+    if (isDeviceSuitable(device)) {
+      physicalDevice = device;
+      break;
+    }
+  }
+
+  if (physicalDevice == VK_NULL_HANDLE) {
+    throw std::runtime_error("Failed to find a suitable GPU!");
+  }
+}
+
+bool Engine::isDeviceSuitable(VkPhysicalDevice device) {
+  VkPhysicalDeviceProperties deviceProperties;
+  VkPhysicalDeviceFeatures deviceFeatures;
+  vkGetPhysicalDeviceProperties(device, &deviceProperties);
+  vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+  return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
+         deviceFeatures.geometryShader;
 }
 
 // This runs the main loop of the program.
@@ -116,6 +182,10 @@ void Engine::mainLoop() {
 
 // This function cleans up the resources used by the program.
 void Engine::cleanup() {
+  if (enableValidationLayers) {
+    DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+  }
+
   vkDestroyInstance(instance, nullptr);
   glfwDestroyWindow(window);
   glfwTerminate();
