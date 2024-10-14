@@ -1,2 +1,2 @@
 CompileFlags:
-    CompilationDatabase: "out/compile_commands.json"
+    CompilationDatabase: "out"

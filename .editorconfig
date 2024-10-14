@@ -1,0 +1,21 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# Top-most EditorConfig file
+root = true
+
+# Global settings
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C and C++ files
+[*.{c,cc,cpp,h,hpp}]
+indent_style = space
+indent_size = 2
+max_line_length = 80
+
+# For editors that support ClangFormat configurations via EditorConfig
+[*.{c,cc,cpp,h,hpp}]
+clang_format_style = Google
