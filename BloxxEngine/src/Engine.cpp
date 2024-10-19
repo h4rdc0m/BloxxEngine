@@ -1,10 +1,7 @@
 /*
- * Copyright (c) 2024.
+ * Copyright (c) 2024 Combat Jongerenmarketing en -communicatie B.V.
+ * All rights reserved.
  */
-
-//
-// Created by hardc on 19-10-2024.
-//
 
 #include "Engine.h"
 
