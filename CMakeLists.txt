@@ -35,7 +35,22 @@ FetchContent_Declare(
         GIT_TAG 0.9.9.8
 )
 
-FetchContent_MakeAvailable(glfw imgui spdlog glm)
+
+# stb
+FetchContent_Declare(
+        stb
+        GIT_REPOSITORY https://github.com/nothings/stb.git
+        GIT_TAG master
+)
+
+FetchContent_MakeAvailable(glfw imgui spdlog glm stb)
+
+if(NOT TARGET stb)
+    file(GLOB STB_SOURCES "${stb_SOURCE_DIR}/*.h")
+    add_library(stb INTERFACE ${STB_SOURCES})
+
+    target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
+endif()
 
 if (NOT TARGET imgui)
     # Include imgui files for the target

@@ -5,6 +5,4 @@
 
 #pragma once
 
-#include "BloxxEngine/Engine.h"
-
-#include "BloxxEngine/EntryPoint.h"
+#include "BloxxEngine/Renderer.h"
