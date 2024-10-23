@@ -11,7 +11,5 @@ int main()
 
     renderer.Run();
 
-    renderer.Shutdown();
-
     return EXIT_SUCCESS;
 }

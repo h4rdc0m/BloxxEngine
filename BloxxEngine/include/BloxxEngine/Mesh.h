@@ -10,23 +10,31 @@
 
 #include <vector>
 
-namespace BloxxEngine {
+namespace BloxxEngine
+{
 
+#pragma pack(push, 1)
 struct Vertex
 {
     glm::vec3 Position;
     glm::vec3 Normal = {0.0f, 0.0f, 1.0f};
     glm::vec2 TexCoords;
+    glm::vec3 Tangent = {.0f, .0f, .0f}; // Tangent attribute
+    glm::vec3 Bitangent = {.0f, .0f, .0f};
+    ; // Bitangent attribute
 };
+#pragma pack(pop)
 
-class Mesh {
-public:
-    Mesh(const std::vector<Vertex>& vertices, const std::vector<GLuint>& indices);
+class Mesh
+{
+  public:
+    Mesh(const std::vector<Vertex> &vertices, const std::vector<GLuint> &indices);
     ~Mesh();
 
     void Draw() const;
+    void CalculateTangentsAndBitangents();
 
-    private:
+  private:
     GLuint m_VAO, m_VBO, m_EBO;
     size_t m_IndexCount;
 
@@ -35,4 +43,4 @@ public:
     std::vector<GLuint> m_Indices;
 };
 
-} // BloxxEngine
+} // namespace BloxxEngine

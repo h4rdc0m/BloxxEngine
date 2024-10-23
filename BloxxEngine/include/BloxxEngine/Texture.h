@@ -27,7 +27,7 @@ class Texture
         Repeat,
     };
 
-    Texture(const std::string &filePath, FilterMode filterMode = FilterMode::Linear, WrapMode wrapMode = WrapMode::Clamp);
+    explicit Texture(const std::string &filePath, FilterMode filterMode = FilterMode::Linear, WrapMode wrapMode = WrapMode::Clamp);
     ~Texture();
 
     void Bind(unsigned int slot = 0) const;

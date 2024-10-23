@@ -20,7 +20,7 @@ class Shader
     ~Shader();
 
     void Bind() const;
-    void Unbind() ;
+    void Unbind();
 
     // Utility functions to set uniform variables
     void SetUniformMat4(const std::string &name, const glm::mat4 &value);
@@ -32,9 +32,9 @@ class Shader
     GLuint m_RendererID;
 
     // Helper functions
-    static std::string LoadShaderSource(const std::string &path);
-    static GLuint CompileShader(GLenum type, const std::string &source);
-    static GLuint CreateProgram(GLuint vertexShader, GLuint fragmentShader);
+    std::string LoadShaderSource(const std::string &path);
+    GLuint CompileShader(GLenum type, const std::string &source);
+    GLuint CreateProgram(GLuint vertexShader, GLuint fragmentShader);
     GLint GetUniformLocation(const std::string &name);
 
     // Cache for uniform locations
