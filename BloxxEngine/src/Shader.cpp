@@ -20,8 +20,22 @@ Shader::Shader(const std::string &vertexShaderPath, const std::string &fragmentS
     GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
 
     m_RendererID = CreateProgram(vertexShader, fragmentShader);
+    std::cout << "Shader Program ID: " << m_RendererID << ", for: " << vertexShaderPath << ", " << fragmentShaderPath << std::endl;
 
+    GLint numUniforms = 0;
+    glGetProgramiv(m_RendererID, GL_ACTIVE_UNIFORMS, &numUniforms);
+
+    for (GLint i = 0; i < numUniforms; ++i) {
+        char name[256];
+        GLsizei length;
+        GLint size;
+        GLenum type;
+        glGetActiveUniform(m_RendererID, i, sizeof(name), &length, &size, &type, name);
+        std::cout << "Uniform #" << i << ": " << name << std::endl;
+    }
     // Clean up shaders
+    glDetachShader(m_RendererID, vertexShader);
+    glDetachShader(m_RendererID, fragmentShader);
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 }
@@ -40,6 +54,7 @@ void Shader::Unbind()
 {
     glUseProgram(0);
 }
+
 void Shader::SetUniformMat4(const std::string &name, const glm::mat4 &value)
 {
     const GLint location = GetUniformLocation(name);
@@ -102,9 +117,9 @@ GLuint Shader::CompileShader(const GLenum type, const std::string &source)
 
     return shader;
 }
-GLuint Shader::CreateProgram(GLuint vertexShader, GLuint fragmentShader)
+GLuint Shader::CreateProgram(const GLuint vertexShader, const GLuint fragmentShader)
 {
-    GLuint program = glCreateProgram();
+    const GLuint program = glCreateProgram();
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
     glLinkProgram(program);
@@ -131,7 +146,7 @@ GLint Shader::GetUniformLocation(const std::string &name)
     if (m_UniformLocationCache.contains(name))
         return m_UniformLocationCache[name];
 
-    GLint location = glGetUniformLocation(m_RendererID, name.c_str());
+    const GLint location = glGetUniformLocation(m_RendererID, name.c_str());
     if (location == -1)
         std::cerr << "Uniform " << name << " not found" << std::endl;
 
