@@ -6,10 +6,14 @@
  */
 
 #include "BloxxEngine/World/Chunk.h"
+
+#include <iostream>
 namespace BloxxEngine
 {
-Chunk::Chunk(int x, int z) : m_ChunkX(x), m_ChunkZ(z)
+Chunk::Chunk(const int x, const int z) : m_ChunkX(x), m_ChunkZ(z), m_VAO(0), m_VBO(0), m_EBO(0)
 {
+    auto* b = new Block{"block:stone", BlockType::Solid, 0};
+    m_Blocks.fill(b);
 }
 
 void Chunk::GenerateMesh()
@@ -18,6 +22,12 @@ void Chunk::GenerateMesh()
     m_Indices.clear();
 
     int m_IndexCount = 0;
+    auto texCoords = std::array<glm::vec2, 4>{
+        glm::vec2(0.0f, 1.0f), // Bottom-left
+        glm::vec2(1.0f, 1.0f), // Bottom-right
+        glm::vec2(1.0f, 0.0f), // Top-right
+        glm::vec2(0.0f, 0.0f), // Top-left
+    };
 
     for (int i = 0; i < CHUNK_SIZE; i++)
     {
@@ -26,7 +36,7 @@ void Chunk::GenerateMesh()
         const int z = i / (CHUNK_WIDTH * CHUNK_HEIGHT);
 
         Block* block = m_Blocks.at(i);
-        if (block->Type == BlockType::Air)
+        if (block == nullptr || block->Type == BlockType::Air)
         {
             continue;
         }
@@ -40,19 +50,53 @@ void Chunk::GenerateMesh()
         // Top face
         if (y == CHUNK_HEIGHT - 1 || GetBlock(x, y + 1, z)->IsTransparent())
         {
-            AddFace(blockPosition, BlockFace::TopVertices, BlockFace::TopNormal,
-                    {
-                        glm::vec2(0.0f, 0.0f),
-                        glm::vec2(1.0f, 0.0f),
-                        glm::vec2(1.0f, 1.0f),
-                        glm::vec2(0.0f, 1.0f),
-                    });
+            AddFace(blockPosition, BlockFace::TopVertices, BlockFace::TopNormal,texCoords);
+        }
+
+        // Bottom face
+        if (y == 0 || GetBlock(x, y - 1, z)->IsTransparent())
+        {
+            AddFace(blockPosition, BlockFace::BottomVertices, BlockFace::BottomNormal, texCoords);
+        }
+
+        // Front face
+        if (z == 0 || GetBlock(x, y, z - 1)->IsTransparent())
+        {
+            AddFace(blockPosition, BlockFace::BackVertices, BlockFace::BackNormal, texCoords);
+        }
+
+        // Back face
+        if (z == CHUNK_DEPTH - 1 || GetBlock(x, y, z + 1)->IsTransparent())
+        {
+            AddFace(blockPosition, BlockFace::FrontVertices, BlockFace::FrontNormal, texCoords);
+        }
+
+        // Left face
+        if (x == 0 || GetBlock(x - 1, y, z)->IsTransparent())
+        {
+            AddFace(blockPosition, BlockFace::LeftVertices, BlockFace::LeftNormal, texCoords);
+        }
+
+        // Right face
+        if (x == CHUNK_WIDTH - 1 || GetBlock(x + 1, y, z)->IsTransparent())
+        {
+            AddFace(blockPosition, BlockFace::RightVertices, BlockFace::RightNormal, texCoords);
         }
     }
 }
 void Chunk::Draw() const
 {
 }
+
+std::vector<Vertex> &Chunk::GetVertices()
+{
+    return m_Vertices;
+}
+std::vector<GLuint> &Chunk::GetIndices()
+{
+    return m_Indices;
+}
+
 void Chunk::SetupMesh()
 {
 }
@@ -87,7 +131,7 @@ void Chunk::AddFace(const glm::vec3 &blockPosition, const std::array<glm::vec3, 
     m_Vertices.push_back(v3);
 
     // Calculate the starting index for the indices
-    GLuint index = static_cast<GLuint>(m_Indices.size()) - 4;
+    GLuint index = static_cast<GLuint>(m_Vertices.size()) - 4;
     m_Indices.push_back(index);
     m_Indices.push_back(index + 1);
     m_Indices.push_back(index + 2);
@@ -99,13 +143,20 @@ void Chunk::AddFace(const glm::vec3 &blockPosition, const std::array<glm::vec3, 
 
 Block *Chunk::GetBlock(const int x, const int y, const int z) const
 {
+    // Ensure x, y, z are within valid ranges
+    assert(x >= 0 && x < CHUNK_WIDTH);
+    assert(y >= 0 && y < CHUNK_HEIGHT);
+    assert(z >= 0 && z < CHUNK_DEPTH);
+
     const int i = x + y * CHUNK_WIDTH + z * CHUNK_WIDTH * CHUNK_HEIGHT;
-    return m_Blocks[i];
+    return m_Blocks.at(i);
 }
 void Chunk::SetBlock(const int x, const int y, const int z, const std::string &id, const BlockType type,
                      const uint8_t metadata)
 {
     const int i = x + y * CHUNK_WIDTH + z * CHUNK_WIDTH * CHUNK_HEIGHT;
+    std::cout << "Adding block " << id << ", to: " << i << std::endl;
+
     m_Blocks[i] = new Block(id, type, metadata);
 }
 

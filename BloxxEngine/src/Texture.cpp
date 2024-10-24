@@ -24,7 +24,8 @@ Texture::Texture(const std::string &filePath, const FilterMode filterMode, const
     m_LocalBuffer = stbi_load(filePath.c_str(), &m_Width, &m_Height, &m_BPP, 4);
     if (!m_LocalBuffer)
     {
-        std::cerr << "Failed to load " << filePath << std::endl;
+
+        std::cerr << "Failed to load " << filePath << ", with error: " << stbi_failure_reason() << std::endl;
         return;
     }
 

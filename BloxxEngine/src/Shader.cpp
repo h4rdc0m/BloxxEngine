@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <ostream>
+#include <vector>
 
 namespace BloxxEngine
 {

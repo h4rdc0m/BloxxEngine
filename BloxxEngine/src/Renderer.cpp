@@ -8,6 +8,7 @@
 #include "BloxxEngine/EventDispatcher.h"
 #include "BloxxEngine/Events/KeyboardEvents.h"
 #include "BloxxEngine/Events/MouseEvents.h"
+#include "BloxxEngine/World/Chunk.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
@@ -42,7 +43,8 @@ void APIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum seve
 Renderer::Renderer()
     : m_Window(nullptr), m_Shader(nullptr), m_BaseColorTexture(nullptr), m_Mesh(nullptr), m_LastFrameTime(0.0f),
       m_WindowTitle("BloxxEngine"), m_Width(800), m_Height(600),
-      m_Camera(std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f), /* up vector */ glm::vec3(0.0f, 1.0f, 0.0f), /* yaw */ -90.0f, /* pitch */ 0.0f))
+      m_Camera(std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f), /* up vector */ glm::vec3(0.0f, 1.0f, 0.0f),
+                                        /* yaw */ -90.0f, /* pitch */ 0.0f))
 {
 }
 
@@ -68,68 +70,21 @@ bool Renderer::Initialize(const std::string &windowTitle, int width, int height)
     // Load shaders
     m_Shader = std::make_unique<Shader>("Resources/shaders/block.vert.glsl", "Resources/shaders/block.frag.glsl");
     // Load texture
-    m_BaseColorTexture = std::make_unique<Texture>("Resources/textures/Stone_basecolor.png", Texture::FilterMode::Nearest); // Provide the path to your texture image
-    m_NormalTexture = std::make_unique<Texture>("Resources/textures/Stone_normal.png", Texture::FilterMode::Nearest); // Provide the path to your texture image
-    m_RMAHTexture = std::make_unique<Texture>("Resources/textures/Stone_rmah.png", Texture::FilterMode::Nearest); // Provide the path to your texture image
+    m_BaseColorTexture =
+        std::make_unique<Texture>("./Resources/textures/Stone_basecolor.png",
+                                  Texture::FilterMode::Nearest); // Provide the path to your texture image
+    m_NormalTexture = std::make_unique<Texture>("./Resources/textures/Stone_normal.png",
+                                                Texture::FilterMode::Nearest); // Provide the path to your texture image
+    m_RMAHTexture = std::make_unique<Texture>("./Resources/textures/Stone_rmah.png",
+                                              Texture::FilterMode::Nearest); // Provide the path to your texture image
 
-    // clang-format off
-    // Cube vertices with positions, normals, and texture coordinates
-    std::vector<Vertex> vertices = {
-        // Positions          // Normals           // Texture Coords
-        // Front face
-        {{-0.5f, -0.5f,  0.5f}, {0.0f,  0.0f,  1.0f}, {0.0f, 0.0f}}, // Bottom-left
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f,  0.0f,  1.0f}, {1.0f, 0.0f}}, // Bottom-right
-        {{ 0.5f,  0.5f,  0.5f}, {0.0f,  0.0f,  1.0f}, {1.0f, 1.0f}}, // Top-right
-        {{-0.5f,  0.5f,  0.5f}, {0.0f,  0.0f,  1.0f}, {0.0f, 1.0f}}, // Top-left
-
-        // Back face
-        {{-0.5f, -0.5f, -0.5f}, {0.0f,  0.0f, -1.0f}, {1.0f, 0.0f}}, // Bottom-right
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f,  0.0f, -1.0f}, {0.0f, 0.0f}}, // Bottom-left
-        {{ 0.5f,  0.5f, -0.5f}, {0.0f,  0.0f, -1.0f}, {0.0f, 1.0f}}, // Top-left
-        {{-0.5f,  0.5f, -0.5f}, {0.0f,  0.0f, -1.0f}, {1.0f, 1.0f}}, // Top-right
-
-        // Left face
-        {{-0.5f, -0.5f, -0.5f}, {-1.0f,  0.0f,  0.0f}, {0.0f, 0.0f}}, // Bottom-left
-        {{-0.5f, -0.5f,  0.5f}, {-1.0f,  0.0f,  0.0f}, {1.0f, 0.0f}}, // Bottom-right
-        {{-0.5f,  0.5f,  0.5f}, {-1.0f,  0.0f,  0.0f}, {1.0f, 1.0f}}, // Top-right
-        {{-0.5f,  0.5f, -0.5f}, {-1.0f,  0.0f,  0.0f}, {0.0f, 1.0f}}, // Top-left
-
-        // Right face
-        {{ 0.5f, -0.5f, -0.5f}, {1.0f,  0.0f,  0.0f}, {1.0f, 0.0f}}, // Bottom-right
-        {{ 0.5f, -0.5f,  0.5f}, {1.0f,  0.0f,  0.0f}, {0.0f, 0.0f}}, // Bottom-left
-        {{ 0.5f,  0.5f,  0.5f}, {1.0f,  0.0f,  0.0f}, {0.0f, 1.0f}}, // Top-left
-        {{ 0.5f,  0.5f, -0.5f}, {1.0f,  0.0f,  0.0f}, {1.0f, 1.0f}}, // Top-right
-
-        // Top face
-        {{-0.5f,  0.5f, -0.5f}, {0.0f,  1.0f,  0.0f}, {0.0f, 1.0f}}, // Top-left
-        {{-0.5f,  0.5f,  0.5f}, {0.0f,  1.0f,  0.0f}, {0.0f, 0.0f}}, // Bottom-left
-        {{ 0.5f,  0.5f,  0.5f}, {0.0f,  1.0f,  0.0f}, {1.0f, 0.0f}}, // Bottom-right
-        {{ 0.5f,  0.5f, -0.5f}, {0.0f,  1.0f,  0.0f}, {1.0f, 1.0f}}, // Top-right
-
-        // Bottom face
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f,  0.0f}, {1.0f, 1.0f}}, // Top-right
-        {{-0.5f, -0.5f,  0.5f}, {0.0f, -1.0f,  0.0f}, {1.0f, 0.0f}}, // Bottom-right
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f, -1.0f,  0.0f}, {0.0f, 0.0f}}, // Bottom-left
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f, -1.0f,  0.0f}, {0.0f, 1.0f}}, // Top-left
-    };
-
-    std::vector<GLuint> indices = {
-        // Front face
-        0, 1, 2, 2, 3, 0,
-        // Back face
-        4, 5, 6, 6, 7, 4,
-        // Left face
-        8, 9, 10, 10, 11, 8,
-        // Right face
-        12, 13, 14, 14, 15, 12,
-        // Top face
-        16, 17, 18, 18, 19, 16,
-        // Bottom face
-        20, 21, 22, 22, 23, 20,
-    };
+    Chunk chunk{0, 0};
+    chunk.SetBlock(0, 0, 0, "block:air", BlockType::Air, 0);
+    // chunk.SetBlock(10, 10, 10, "block:stone", BlockType::Solid, 0);
+    chunk.GenerateMesh();
 
     // clang-format on
-    m_Mesh = std::make_unique<Mesh>(vertices, indices);
+    m_Mesh = std::make_unique<Mesh>(chunk.GetVertices(), chunk.GetIndices());
 
     // Set up matrices
     m_ModelMatrix = glm::mat4(1.0f);
@@ -138,10 +93,13 @@ bool Renderer::Initialize(const std::string &windowTitle, int width, int height)
 
     m_LastFrameTime = static_cast<float>(glfwGetTime());
 
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(MessageCallback, nullptr);
+    // glEnable(GL_DEBUG_OUTPUT);
+    // glDebugMessageCallback(MessageCallback, nullptr);
 
     glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
+    // glFrontFace(GL_CCW);
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
     {
@@ -377,7 +335,7 @@ void Renderer::OnUpdate(float deltaTime)
     // Rotate the model
     float rotationSpeed = 50.0f; // degrees per second
     float angle = rotationSpeed * deltaTime;
-    m_ModelMatrix = glm::rotate(m_ModelMatrix, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+    // m_ModelMatrix = glm::rotate(m_ModelMatrix, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Rotate the light position around the Y-axis
     float lightRotationSpeed = 20.0f; // degrees per second
@@ -422,7 +380,8 @@ void Renderer::OnRender()
     m_Shader->Unbind();
     m_BaseColorTexture->Unbind();
     GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
+    if (error != GL_NO_ERROR)
+    {
         std::cerr << "OpenGL Error: " << error << std::endl;
     }
 }
@@ -433,7 +392,8 @@ void Renderer::OnImGuiRender()
     ImGui::Text("FPS: %.2f", 1.0f / m_DeltaTime);
     ImGui::Text("Frame Time: %.2f ms", m_DeltaTime * 1000.0f);
     ImGui::Text("Draw calls: %d", m_DrawCalls);
-    ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", m_Camera->Position.x, m_Camera->Position.y, m_Camera->Position.z);
+    ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", m_Camera->Position.x, m_Camera->Position.y,
+                m_Camera->Position.z);
     ImGui::End();
 }
 void Renderer::OnEvent(Event &event)

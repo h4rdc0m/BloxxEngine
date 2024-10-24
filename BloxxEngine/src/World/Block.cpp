@@ -10,7 +10,7 @@
 namespace BloxxEngine
 {
 
-Block::Block(const std::string& ID, const BlockType type, const uint8_t Metadata) : ID(ID), Type(type), Metadata(Metadata)
+Block::Block(const std::string& ID, const BlockType type, const uint8_t metadata) : ID(ID), Type(type), Metadata(metadata)
 {
 }
 

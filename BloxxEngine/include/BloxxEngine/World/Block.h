@@ -13,7 +13,8 @@
 #include <string>
 #include <unordered_map>
 
-namespace BloxxEngine {
+namespace BloxxEngine
+{
 
 enum class BlockType : uint8_t
 {
@@ -23,11 +24,10 @@ enum class BlockType : uint8_t
     Entity,
 };
 
-
-
 namespace BlockFace
 {
-enum class Direction {
+enum class Direction
+{
     Front,
     Back,
     Left,
@@ -45,47 +45,52 @@ constexpr std::array<glm::vec3, 4> FrontVertices = {
 constexpr auto FrontNormal = glm::vec3(0.0f, 0.0f, 1.0f);
 
 // Back Face (-Z)
-constexpr std::array BackVertices = {
-    glm::vec3(1.0f, 0.0f, 0.0f), // Bottom-left
-    glm::vec3(0.0f, 0.0f, 0.0f), // Bottom-right
-    glm::vec3(0.0f, 1.0f, 0.0f), // Top-right
-    glm::vec3(1.0f, 1.0f, 0.0f)  // Top-left
+// Adjusted vertex order to be counter-clockwise when viewed from -Z direction
+constexpr std::array<glm::vec3, 4> BackVertices = {
+    glm::vec3(0.0f, 0.0f, 0.0f), // Bottom-left
+    glm::vec3(1.0f, 0.0f, 0.0f), // Bottom-right
+    glm::vec3(1.0f, 1.0f, 0.0f), // Top-right
+    glm::vec3(0.0f, 1.0f, 0.0f)  // Top-left
 };
 constexpr glm::vec3 BackNormal = glm::vec3(0.0f, 0.0f, -1.0f);
 
 // Left Face (-X)
-constexpr std::array LeftVertices = {
-    glm::vec3(0.0f, 0.0f, 0.0f), // Bottom-left
-    glm::vec3(0.0f, 0.0f, 1.0f), // Bottom-right
-    glm::vec3(0.0f, 1.0f, 1.0f), // Top-right
-    glm::vec3(0.0f, 1.0f, 0.0f)  // Top-left
+// Adjusted vertex order to be counter-clockwise when viewed from -X direction
+constexpr std::array<glm::vec3, 4> LeftVertices = {
+    glm::vec3(0.0f, 0.0f, 1.0f), // Bottom-left
+    glm::vec3(0.0f, 0.0f, 0.0f), // Bottom-right
+    glm::vec3(0.0f, 1.0f, 0.0f), // Top-right
+    glm::vec3(0.0f, 1.0f, 1.0f)  // Top-left
 };
 constexpr auto LeftNormal = glm::vec3(-1.0f, 0.0f, 0.0f);
 
 // Right Face (+X)
-constexpr std::array RightVertices = {
-    glm::vec3(1.0f, 0.0f, 1.0f), // Bottom-left
-    glm::vec3(1.0f, 0.0f, 0.0f), // Bottom-right
-    glm::vec3(1.0f, 1.0f, 0.0f), // Top-right
-    glm::vec3(1.0f, 1.0f, 1.0f)  // Top-left
+// Adjusted vertex order to be counter-clockwise when viewed from +X direction
+constexpr std::array<glm::vec3, 4> RightVertices = {
+    glm::vec3(1.0f, 0.0f, 0.0f), // Bottom-left
+    glm::vec3(1.0f, 0.0f, 1.0f), // Bottom-right
+    glm::vec3(1.0f, 1.0f, 1.0f), // Top-right
+    glm::vec3(1.0f, 1.0f, 0.0f)  // Top-left
 };
 constexpr auto RightNormal = glm::vec3(1.0f, 0.0f, 0.0f);
 
 // Top Face (+Y)
-constexpr std::array TopVertices = {
-    glm::vec3(0.0f, 1.0f, 1.0f), // Bottom-left
-    glm::vec3(1.0f, 1.0f, 1.0f), // Bottom-right
-    glm::vec3(1.0f, 1.0f, 0.0f), // Top-right
-    glm::vec3(0.0f, 1.0f, 0.0f)  // Top-left
+// Adjusted vertex order to be counter-clockwise when viewed from +Y direction
+constexpr std::array<glm::vec3, 4> TopVertices = {
+    glm::vec3(0.0f, 1.0f, 0.0f), // Bottom-left
+    glm::vec3(1.0f, 1.0f, 0.0f), // Bottom-right
+    glm::vec3(1.0f, 1.0f, 1.0f), // Top-right
+    glm::vec3(0.0f, 1.0f, 1.0f)  // Top-left
 };
 constexpr auto TopNormal = glm::vec3(0.0f, 1.0f, 0.0f);
 
 // Bottom Face (-Y)
-constexpr std::array BottomVertices = {
-    glm::vec3(0.0f, 0.0f, 0.0f), // Bottom-left
-    glm::vec3(1.0f, 0.0f, 0.0f), // Bottom-right
-    glm::vec3(1.0f, 0.0f, 1.0f), // Top-right
-    glm::vec3(0.0f, 0.0f, 1.0f)  // Top-left
+// Adjusted vertex order to be counter-clockwise when viewed from -Y direction
+constexpr std::array<glm::vec3, 4> BottomVertices = {
+    glm::vec3(0.0f, 0.0f, 1.0f), // Bottom-left
+    glm::vec3(1.0f, 0.0f, 1.0f), // Bottom-right
+    glm::vec3(1.0f, 0.0f, 0.0f), // Top-right
+    glm::vec3(0.0f, 0.0f, 0.0f)  // Top-left
 };
 constexpr auto BottomNormal = glm::vec3(0.0f, -1.0f, 0.0f);
 }; // namespace BlockFace
@@ -111,7 +116,8 @@ struct BlockTextures
     std::unique_ptr<BlockTexture> Metallic;
 };
 
-struct Block {
+struct Block
+{
     std::string ID; // TODO: maybe change to string label
     BlockType Type;
 
@@ -121,11 +127,11 @@ struct Block {
     std::string Name;
     std::unique_ptr<BlockTextures> Textures;
 
-    explicit Block(const std::string& ID, BlockType type = BlockType::Air, uint8_t Metadata = 0);
+    explicit Block(const std::string &ID, BlockType type = BlockType::Air, uint8_t Metadata = 0);
 
     // Helper functions to check if block is solid, transparent etc.
     [[nodiscard]] bool IsSolid() const;
     [[nodiscard]] bool IsTransparent() const;
 };
 
-} // BloxxEngine
+} // namespace BloxxEngine
