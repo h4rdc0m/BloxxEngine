@@ -11,6 +11,7 @@ FetchContent_Declare(
         glfw
         GIT_REPOSITORY https://github.com/glfw/glfw.git
         GIT_TAG 3.3.8
+        GIT_SHALLOW    TRUE
 )
 
 # ImGui (with docking branch)
@@ -18,6 +19,7 @@ FetchContent_Declare(
         imgui
         GIT_REPOSITORY https://github.com/ocornut/imgui.git
         GIT_TAG v1.91.4-docking
+        GIT_SHALLOW    TRUE
 )
 
 # spdlog
@@ -25,6 +27,7 @@ FetchContent_Declare(
         spdlog
         GIT_REPOSITORY https://github.com/gabime/spdlog.git
         GIT_TAG v1.14.1
+        GIT_SHALLOW    TRUE
 )
 
 
@@ -32,7 +35,8 @@ FetchContent_Declare(
 FetchContent_Declare(
         glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG 0.9.9.8
+        GIT_TAG 1.0.1
+        GIT_SHALLOW    TRUE
 )
 
 
@@ -41,6 +45,7 @@ FetchContent_Declare(
         stb
         GIT_REPOSITORY https://github.com/nothings/stb.git
         GIT_TAG master
+        GIT_SHALLOW    TRUE
 )
 
 FetchContent_MakeAvailable(glfw imgui spdlog glm stb)
@@ -52,16 +57,6 @@ if(NOT TARGET stb)
     target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
 endif()
 
-
-# libevent
-set(EVENT__DISABLE_OPENSSL ON)
-FetchContent_Declare(
-        libevent
-        GIT_REPOSITORY https://github.com/libevent/libevent.git
-        GIT_TAG release-2.1.12-stable
-)
-
-FetchContent_MakeAvailable(libevent)
 
 if (NOT TARGET event)
 
