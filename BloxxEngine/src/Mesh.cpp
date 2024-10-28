@@ -5,11 +5,12 @@
 
 #include "BloxxEngine/Mesh.h"
 
+#include <glad/gl.h>
 #include <iostream>
 
 namespace BloxxEngine
 {
-Mesh::Mesh(const std::vector<Vertex> &vertices, const std::vector<GLuint> &indices)
+Mesh::Mesh(const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices)
     : m_VAO(0), m_VBO(0), m_EBO(0), m_IndexCount(indices.size()), m_Vertices(vertices), m_Indices(indices)
 {
     CalculateTangentsAndBitangents();

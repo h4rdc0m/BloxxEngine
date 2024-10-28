@@ -13,22 +13,22 @@
 namespace BloxxEngine
 {
 
-constexpr int CHUNK_WIDTH = 2;
-constexpr int CHUNK_HEIGHT = 2;
-constexpr int CHUNK_DEPTH = 2;
+constexpr int CHUNK_WIDTH = 16;
+constexpr int CHUNK_HEIGHT = 256;
+constexpr int CHUNK_DEPTH = 16;
 constexpr int CHUNK_SIZE = CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH;
 
 class Chunk
 {
   public:
     Chunk(int x, int z);
-    ~Chunk() = default;
+    ~Chunk();
 
     void GenerateMesh();
     void Draw() const;
 
     std::vector<Vertex>& GetVertices();
-    std::vector<GLuint>& GetIndices();
+    std::vector<uint32_t>& GetIndices();
 
     // Accessor for blocks
     [[nodiscard]] Block *GetBlock(int x, int y, int z) const;
@@ -50,8 +50,8 @@ class Chunk
 
     // Mesh data
     std::vector<Vertex> m_Vertices;
-    std::vector<GLuint> m_Indices;
-    GLuint m_VAO{}, m_VBO{}, m_EBO{};
+    std::vector<uint32_t> m_Indices;
+    uint32_t m_VAO{}, m_VBO{}, m_EBO{};
 
     void SetupMesh();
     void AddFace(const glm::vec3 &blockPosition, const std::array<glm::vec3, 4> &faceVertices,

@@ -3,8 +3,7 @@
  * All rights reserved.
  */
 
-#pragma once
+#include "BloxxEngine/Renderer/RenderCommand.h"
 
-
-#include "BloxxEngine/Renderer/Renderer.h"
-#include "BloxxEngine/Engine.h"
+namespace BloxxEngine {
+} // BloxxEngine

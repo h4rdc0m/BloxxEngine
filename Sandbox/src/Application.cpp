@@ -2,14 +2,14 @@
 
 int main()
 {
-    BloxxEngine::Renderer renderer;
+    BloxxEngine::Engine engine;
 
-    if (!renderer.Initialize("Sandbox", 1024, 768))
+    if (!engine.Init("Sandbox", 1024, 768))
     {
         return EXIT_FAILURE;
     }
 
-    renderer.Run();
+    engine.Run();
 
     return EXIT_SUCCESS;
 }

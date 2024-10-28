@@ -12,8 +12,13 @@ namespace BloxxEngine
 {
 Chunk::Chunk(const int x, const int z) : m_ChunkX(x), m_ChunkZ(z), m_VAO(0), m_VBO(0), m_EBO(0)
 {
-    auto* b = new Block{"block:stone", BlockType::Solid, 0};
+    auto *b = new Block{"block:stone", BlockType::Solid, 0};
     m_Blocks.fill(b);
+}
+
+Chunk::~Chunk()
+{
+    m_Blocks.fill(nullptr);
 }
 
 void Chunk::GenerateMesh()
@@ -41,46 +46,73 @@ void Chunk::GenerateMesh()
             continue;
         }
 
-        // Positions in world space
+        // Position in world space
         glm::vec3 blockPosition = glm::vec3(m_ChunkX * CHUNK_WIDTH + x, y, m_ChunkZ * CHUNK_DEPTH + z);
 
-        // For each face, check if the adjacent block is air or transparent
-        // If so, add the face to the mesh.
-
-        // Top face
+        // Top face (+Y)
         if (y == CHUNK_HEIGHT - 1 || GetBlock(x, y + 1, z)->IsTransparent())
         {
-            AddFace(blockPosition, BlockFace::TopVertices, BlockFace::TopNormal,texCoords);
+            AddFace(blockPosition, BlockFace::TopVertices, BlockFace::TopNormal, {
+                glm::vec2(0.0f, 0.0f), // Bottom-left
+                glm::vec2(1.0f, 0.0f), // Bottom-right
+                glm::vec2(1.0f, 1.0f), // Top-right
+                glm::vec2(0.0f, 1.0f), // Top-left
+            });
         }
 
-        // Bottom face
+        // Bottom face (-Y)
         if (y == 0 || GetBlock(x, y - 1, z)->IsTransparent())
         {
-            AddFace(blockPosition, BlockFace::BottomVertices, BlockFace::BottomNormal, texCoords);
+            AddFace(blockPosition, BlockFace::BottomVertices, BlockFace::BottomNormal, {
+                glm::vec2(0.0f, 0.0f), // Bottom-left
+                glm::vec2(1.0f, 0.0f), // Bottom-right
+                glm::vec2(1.0f, 1.0f), // Top-right
+                glm::vec2(0.0f, 1.0f), // Top-left
+            });
         }
 
-        // Front face
-        if (z == 0 || GetBlock(x, y, z - 1)->IsTransparent())
-        {
-            AddFace(blockPosition, BlockFace::BackVertices, BlockFace::BackNormal, texCoords);
-        }
-
-        // Back face
+        // Front face (+Z)
         if (z == CHUNK_DEPTH - 1 || GetBlock(x, y, z + 1)->IsTransparent())
         {
-            AddFace(blockPosition, BlockFace::FrontVertices, BlockFace::FrontNormal, texCoords);
+            AddFace(blockPosition, BlockFace::FrontVertices, BlockFace::FrontNormal, {
+                glm::vec2(0.0f, 0.0f), // Bottom-left
+                glm::vec2(1.0f, 0.0f), // Bottom-right
+                glm::vec2(1.0f, 1.0f), // Top-right
+                glm::vec2(0.0f, 1.0f), // Top-left
+            });
         }
 
-        // Left face
+        // Back face (-Z)
+        if (z == 0 || GetBlock(x, y, z - 1)->IsTransparent())
+        {
+            AddFace(blockPosition, BlockFace::BackVertices, BlockFace::BackNormal, {
+                glm::vec2(0.0f, 0.0f), // Bottom-left
+                glm::vec2(1.0f, 0.0f), // Bottom-right
+                glm::vec2(1.0f, 1.0f), // Top-right
+                glm::vec2(0.0f, 1.0f), // Top-left
+            });
+        }
+
+        // Left face (-X)
         if (x == 0 || GetBlock(x - 1, y, z)->IsTransparent())
         {
-            AddFace(blockPosition, BlockFace::LeftVertices, BlockFace::LeftNormal, texCoords);
+            AddFace(blockPosition, BlockFace::LeftVertices, BlockFace::LeftNormal, {
+                glm::vec2(0.0f, 0.0f), // Bottom-left
+                glm::vec2(1.0f, 0.0f), // Bottom-right
+                glm::vec2(1.0f, 1.0f), // Top-right
+                glm::vec2(0.0f, 1.0f), // Top-left
+            });
         }
 
-        // Right face
+        // Right face (+X)
         if (x == CHUNK_WIDTH - 1 || GetBlock(x + 1, y, z)->IsTransparent())
         {
-            AddFace(blockPosition, BlockFace::RightVertices, BlockFace::RightNormal, texCoords);
+            AddFace(blockPosition, BlockFace::RightVertices, BlockFace::RightNormal, {
+                glm::vec2(0.0f, 0.0f), // Bottom-left
+                glm::vec2(1.0f, 0.0f), // Bottom-right
+                glm::vec2(1.0f, 1.0f), // Top-right
+                glm::vec2(0.0f, 1.0f), // Top-left
+            });
         }
     }
 }
@@ -92,7 +124,7 @@ std::vector<Vertex> &Chunk::GetVertices()
 {
     return m_Vertices;
 }
-std::vector<GLuint> &Chunk::GetIndices()
+std::vector<uint32_t> &Chunk::GetIndices()
 {
     return m_Indices;
 }
@@ -100,45 +132,33 @@ std::vector<GLuint> &Chunk::GetIndices()
 void Chunk::SetupMesh()
 {
 }
-void Chunk::AddFace(const glm::vec3 &blockPosition, const std::array<glm::vec3, 4> &faceVertices,
-                    const glm::vec3 &faceNormal, const std::array<glm::vec2, 4> &uvCoords)
+void Chunk::AddFace(
+    const glm::vec3& blockPosition,
+    const std::array<glm::vec3, 4>& faceVertices,
+    const glm::vec3& normal,
+    const std::array<glm::vec2, 4>& texCoords)
 {
-    // Each face has 4 vertices
-    Vertex v0, v1, v2, v3;
+    unsigned int startIndex = static_cast<unsigned int>(m_Vertices.size());
 
-    // Calculate positions of the vertices by adding the block position
-    v0.Position = blockPosition + faceVertices[0];
-    v1.Position = blockPosition + faceVertices[1];
-    v2.Position = blockPosition + faceVertices[2];
-    v3.Position = blockPosition + faceVertices[3];
+    // Add vertices
+    for (int i = 0; i < 4; ++i)
+    {
+        Vertex vertex;
+        vertex.Position = blockPosition + faceVertices[i];
+        vertex.Normal = normal;
+        vertex.TexCoords = texCoords[i];
+        // Calculate Tangent and Bitangent if using normal mapping
+        m_Vertices.push_back(vertex);
+    }
 
-    // Set normals
-    v0.Normal = faceNormal;
-    v1.Normal = faceNormal;
-    v2.Normal = faceNormal;
-    v3.Normal = faceNormal;
+    // Add two triangles (CCW winding)
+    m_Indices.push_back(startIndex + 0);
+    m_Indices.push_back(startIndex + 1);
+    m_Indices.push_back(startIndex + 2);
 
-    // Set texture coordinates
-    v0.TexCoords = uvCoords[0];
-    v1.TexCoords = uvCoords[1];
-    v2.TexCoords = uvCoords[2];
-    v3.TexCoords = uvCoords[3];
-
-    // Add the vertices to the mesh
-    m_Vertices.push_back(v0);
-    m_Vertices.push_back(v1);
-    m_Vertices.push_back(v2);
-    m_Vertices.push_back(v3);
-
-    // Calculate the starting index for the indices
-    GLuint index = static_cast<GLuint>(m_Vertices.size()) - 4;
-    m_Indices.push_back(index);
-    m_Indices.push_back(index + 1);
-    m_Indices.push_back(index + 2);
-
-    m_Indices.push_back(index + 2);
-    m_Indices.push_back(index + 3);
-    m_Indices.push_back(index);
+    m_Indices.push_back(startIndex + 2);
+    m_Indices.push_back(startIndex + 3);
+    m_Indices.push_back(startIndex + 0);
 }
 
 Block *Chunk::GetBlock(const int x, const int y, const int z) const

@@ -1,5 +1,3 @@
-
-
 /*
  * Copyright (c) 2024. Combat Jongerenmarketing en -communicatie B.V
  * All rights reserved.
@@ -18,7 +16,7 @@ Camera::Camera(glm::vec3 pos, glm::vec3 up, float yaw, float pitch)
       WorldUp(up),
       Yaw(yaw),
       Pitch(pitch),
-      MovementSpeed(6.f),
+      MovementSpeed(5.f),
       MouseSensitivity(0.01f),
       ZoomFactor(45.0f)
 {
@@ -30,31 +28,31 @@ glm::mat4 Camera::GetViewMatrix() const
     return glm::lookAt(Position, Position + Front, Up);
 }
 
-void Camera::Move(const Movement direction, const float deltaTime)
+void Camera::Move(const bool forward, const bool backward,
+                  const bool left, const bool right,
+                  const bool up, const bool down,
+                  const float deltaTime)
 {
-    const float velocity = MovementSpeed * deltaTime;
+    glm::vec3 direction(0.0f);
 
-    switch (direction)
-    {
-    case Movement::Forward:
-        Position += Front * velocity;
-        break;
-    case Movement::Backward:
-        Position -= Front * velocity;
-        break;
-    case Movement::Left:
-        Position -= Right * velocity;
-        break;
-    case Movement::Right:
-        Position += Right * velocity;
-        break;
-    case Movement::Up:
-        Position += Up * velocity;
-        break;
-    case Movement::Down:
-        Position -= Up * velocity;
-        break;
-    }
+    if (forward)
+        direction += Front;
+    if (backward)
+        direction -= Front;
+    if (left)
+        direction -= Right;
+    if (right)
+        direction += Right;
+    if (up)
+        direction += Up;
+    if (down)
+        direction -= Up;
+
+    if (glm::length(direction) > 0.0f)
+        direction = glm::normalize(direction);
+
+    float velocity = MovementSpeed * deltaTime;
+    Position += direction * velocity;
 }
 
 void Camera::Rotate(float xOffset, float yOffset, bool constrainPitch)

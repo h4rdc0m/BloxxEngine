@@ -4,8 +4,6 @@
  */
 
 #pragma once
-
-#include <glad/gl.h>
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -28,19 +26,19 @@ struct Vertex
 class Mesh
 {
   public:
-    Mesh(const std::vector<Vertex> &vertices, const std::vector<GLuint> &indices);
+    Mesh(const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
     ~Mesh();
 
     void Draw() const;
     void CalculateTangentsAndBitangents();
 
   private:
-    GLuint m_VAO, m_VBO, m_EBO;
+    uint32_t m_VAO, m_VBO, m_EBO;
     size_t m_IndexCount;
 
     void SetupMesh();
     std::vector<Vertex> m_Vertices;
-    std::vector<GLuint> m_Indices;
+    std::vector<uint32_t> m_Indices;
 };
 
 } // namespace BloxxEngine

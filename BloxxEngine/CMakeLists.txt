@@ -1,7 +1,14 @@
 file(GLOB_RECURSE ENGINE_SOURCES src/*.cpp src/*.h)
 file(GLOB_RECURSE ENGINE_HEADERS include/*.h)
 
-add_library(BloxxEngine ${ENGINE_HEADERS} ${ENGINE_SOURCES})
+add_library(BloxxEngine ${ENGINE_HEADERS} ${ENGINE_SOURCES}
+        src/Renderer/RenderCommand.cpp
+        include/BloxxEngine/Renderer/RenderCommand.h
+        src/Engine.cpp
+        include/BloxxEngine/Engine.h
+        include/BloxxEngine/Core/Log.h
+        src/Core/Log.cpp
+)
 
 target_link_libraries(BloxxEngine stdc++ glfw ImGui spdlog glad glm stb)
 

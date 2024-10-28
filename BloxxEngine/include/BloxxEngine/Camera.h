@@ -32,15 +32,15 @@ class Camera
      */
     [[nodiscard]] glm::mat4 GetViewMatrix() const;
 
-    void Move(Movement direction, float deltaTime);
+    void Move(bool forward, bool backward, bool left, bool right, bool up, bool down, float deltaTime);
     void Rotate(float xOffset, float yOffset, bool constrainPitch = true);
     void Zoom(float yOffset);
 
     // Camera attributes
     glm::vec3 Position;
     glm::vec3 Front;
-    glm::vec3 Up;
-    glm::vec3 Right;
+    glm::vec3 Up{};
+    glm::vec3 Right{};
     glm::vec3 WorldUp;
 
     // Euler angles
