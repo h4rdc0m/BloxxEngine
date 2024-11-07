@@ -60,6 +60,8 @@ bool Engine::Init(const std::string &title, int width, int height)
 
     m_LastFrameTime = static_cast<float>(glfwGetTime());
 
+    m_World = std::make_unique<World>();
+
     return true;
 }
 void Engine::Run()
@@ -83,11 +85,12 @@ void Engine::Shutdown()
 void Engine::OnUpdate(const float deltaTime)
 {
     m_Renderer->Update(deltaTime);
+    m_World->Update(deltaTime);
 }
 
 void Engine::OnRender()
 {
-    m_Renderer->Render();
+    m_Renderer->Render(*m_World);
 }
 
 void Engine::OnImGuiRender() {
@@ -96,31 +99,43 @@ void Engine::OnImGuiRender() {
 
 void Engine::MainLoop()
 {
+    tf::Executor executor;
+    tf::Taskflow taskflow;
+
     // Timing variables
     using clock = std::chrono::high_resolution_clock;
     auto lastTime = clock::now();
 
     while (!glfwWindowShouldClose(m_Window))
     {
-        // Calculate deltaTime
+        taskflow.clear();
+
+        // Process input
+        auto inputTask = taskflow.emplace([this]() {
+            ProcessInput();
+        });
+
+        // Update logic
+        auto updateTask = taskflow.emplace([this]() {OnUpdate(m_DeltaTime);});
+
+
+
+        OnImGuiRender();
+        OnRender();
+
+
+        inputTask.precede(updateTask);
+
+
+        executor.run(taskflow).wait();
+
+        glfwSwapBuffers(m_Window);
+        glfwPollEvents();
+
         auto currentTime = clock::now();
         std::chrono::duration<float> elapsed = currentTime - lastTime;
         m_DeltaTime = elapsed.count();
         lastTime = currentTime;
-
-        // Process input
-        ProcessInput();
-
-        // Update logic
-        OnUpdate(m_DeltaTime);
-
-        OnImGuiRender();
-
-        // Render
-        OnRender();
-
-        glfwSwapBuffers(m_Window);
-        glfwPollEvents();
     }
 }
 

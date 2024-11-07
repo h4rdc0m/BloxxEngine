@@ -10,6 +10,8 @@
 
 #include <glad/gl.h>
 #define GLFW_
+#include "World/World.h"
+
 #include <GLFW/glfw3.h>
 
 #include <memory>
@@ -87,6 +89,8 @@ class Engine
 
     float m_LastFrameTime = 0.0f;
     float m_DeltaTime = 0.0f;
+
+    std::unique_ptr<World> m_World;
 
     bool m_CursorEnable = true;
 

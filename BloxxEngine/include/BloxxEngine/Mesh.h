@@ -17,9 +17,6 @@ struct Vertex
     glm::vec3 Position;
     glm::vec3 Normal = {0.0f, 0.0f, 1.0f};
     glm::vec2 TexCoords;
-    glm::vec3 Tangent = {.0f, .0f, .0f}; // Tangent attribute
-    glm::vec3 Bitangent = {.0f, .0f, .0f};
-    ; // Bitangent attribute
 };
 #pragma pack(pop)
 
@@ -30,13 +27,15 @@ class Mesh
     ~Mesh();
 
     void Draw() const;
-    void CalculateTangentsAndBitangents();
 
   private:
-    uint32_t m_VAO, m_VBO, m_EBO;
-    size_t m_IndexCount;
-
     void SetupMesh();
+
+    uint32_t m_VAO = 0;
+    uint32_t m_VBO = 0;
+    uint32_t m_EBO = 0;
+    size_t m_IndexCount = 0;
+
     std::vector<Vertex> m_Vertices;
     std::vector<uint32_t> m_Indices;
 };

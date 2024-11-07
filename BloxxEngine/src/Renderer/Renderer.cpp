@@ -6,10 +6,13 @@
 #include "BloxxEngine/Renderer/Renderer.h"
 
 #include "BloxxEngine/Renderer/RenderCommand.h"
-#include "BloxxEngine/World/Chunk.h"
+#include "BloxxEngine/World/World.h"
 
 #include <chrono>
 #include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include "BloxxEngine/Core/Log.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -18,26 +21,22 @@
 #include <imgui_impl_opengl3.h>
 #include <iostream>
 
+
 namespace BloxxEngine
 {
 
 void APIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                               const GLchar *message, const void *userParam)
 {
-    std::cerr << "GL CALLBACK: " << (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "") << " type = 0x" << std::hex
-              << type << ", severity = 0x" << severity << ", message = " << message << std::endl;
+    BE_CORE_ERROR("GL CALLBACK: {} type = 0x{}, severity = 0x{}, message = {}", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
 }
 
 Renderer::Renderer(const std::shared_ptr<Camera> &camera, const int width, const int height)
-    : m_Camera(camera), m_Shader(nullptr), m_BaseColorTexture(nullptr), m_Mesh(nullptr), m_Width(width),
-      m_Height(height)
+    : m_Camera(camera), m_Shader(nullptr), m_BaseColorTexture(nullptr), m_Width(width), m_Height(height)
 {
 }
 
-Renderer::~Renderer()
-{
-
-}
+Renderer::~Renderer() = default;
 
 bool Renderer::Init()
 {
@@ -47,31 +46,17 @@ bool Renderer::Init()
     m_BaseColorTexture =
         std::make_unique<Texture>("./Resources/textures/stone.png",
                                   Texture::FilterMode::Nearest); // Provide the path to your texture image
-    m_NormalTexture = std::make_unique<Texture>("./Resources/textures/Stone_normal.png",
-                                                Texture::FilterMode::Nearest); // Provide the path to your texture image
-    m_RMAHTexture = std::make_unique<Texture>("./Resources/textures/Stone_rmah.png",
-                                              Texture::FilterMode::Nearest); // Provide the path to your texture image
-
-    Chunk chunk{0, 0};
-    chunk.SetBlock(0, 0, 0, "block:air", BlockType::Air, 0);
-    // chunk.SetBlock(10, 10, 10, "block:stone", BlockType::Solid, 0);
-    chunk.GenerateMesh();
-
-    // clang-format on
-    m_Mesh = std::make_unique<Mesh>(chunk.GetVertices(), chunk.GetIndices());
 
     // Set up matrices
     m_ModelMatrix = glm::mat4(1.0f);
     m_ProjectionMatrix =
         glm::perspective(glm::radians(45.0f), static_cast<float>(m_Width) / static_cast<float>(m_Height), 0.1f, 100.f);
 
-
     RenderCommand::EnableDepthTest();
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR)
+    if (const GLenum error = glGetError(); error != GL_NO_ERROR)
     {
         std::cerr << "OpenGL Error during initialization: " << error << std::endl;
     }
@@ -87,7 +72,7 @@ void Renderer::Shutdown()
     ImGui::DestroyContext();
 }
 
-void Renderer::Render()
+void Renderer::Render(const World &world)
 {
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -129,10 +114,7 @@ void Renderer::Render()
 
     // Set the view position
     // m_Shader->SetUniformVec3("viewPos", m_Camera->Position);
-
-    // Draw the mesh
-    m_Mesh->Draw();
-    m_DrawCalls++;
+    RenderWorld(world);
 
     // Unbind everything
     m_Shader->Unbind();
@@ -160,6 +142,10 @@ void Renderer::ImGuiRender()
     ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", m_Camera->Position.x, m_Camera->Position.y,
                 m_Camera->Position.z);
     ImGui::End();
+}
+void Renderer::RenderWorld(const World &world)
+{
+
 }
 
 } // namespace BloxxEngine

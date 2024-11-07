@@ -18,17 +18,13 @@ constexpr int CHUNK_HEIGHT = 256;
 constexpr int CHUNK_DEPTH = 16;
 constexpr int CHUNK_SIZE = CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH;
 
+typedef std::array<Block *, CHUNK_SIZE> ChunkBlockData;
+
 class Chunk
 {
   public:
     Chunk(int x, int z);
     ~Chunk();
-
-    void GenerateMesh();
-    void Draw() const;
-
-    std::vector<Vertex>& GetVertices();
-    std::vector<uint32_t>& GetIndices();
 
     // Accessor for blocks
     [[nodiscard]] Block *GetBlock(int x, int y, int z) const;
@@ -43,18 +39,23 @@ class Chunk
         return m_ChunkZ;
     }
 
+    [[nodiscard]] bool IsReady() const
+    {
+        return m_IsReady;
+    }
+    [[nodiscard]] const ChunkBlockData& GetBlockData() const
+    {
+        return m_Blocks;
+    }
+
+    void SetReady(const bool ready) { m_IsReady = ready; }
+
+    void GenerateTerrain(int x, int z, int seed);
+
   private:
     int m_ChunkX, m_ChunkZ;
+    bool m_IsReady = false;
 
-    std::array<Block *, CHUNK_SIZE> m_Blocks{};
-
-    // Mesh data
-    std::vector<Vertex> m_Vertices;
-    std::vector<uint32_t> m_Indices;
-    uint32_t m_VAO{}, m_VBO{}, m_EBO{};
-
-    void SetupMesh();
-    void AddFace(const glm::vec3 &blockPosition, const std::array<glm::vec3, 4> &faceVertices,
-                 const glm::vec3 &faceNormal, const std::array<glm::vec2, 4> &uvCoords);
+    ChunkBlockData m_Blocks{};
 };
 } // namespace BloxxEngine

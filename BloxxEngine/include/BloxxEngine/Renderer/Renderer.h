@@ -20,15 +20,16 @@
 
 namespace BloxxEngine
 {
+class World;
 
-class Renderer
+class Renderer final
 {
   public:
     Renderer(const std::shared_ptr<Camera>& camera, int width, int height);
     virtual ~Renderer();
 
     bool Init();
-    void Render();
+    void Render(const World &world);
     void Update(float deltaTime);
     void Shutdown();
 
@@ -54,9 +55,6 @@ class Renderer
     // Shader, Texture, and Mesh
     std::unique_ptr<Shader> m_Shader;
     std::unique_ptr<Texture> m_BaseColorTexture;
-    std::unique_ptr<Texture> m_NormalTexture;
-    std::unique_ptr<Texture> m_RMAHTexture;
-    std::unique_ptr<Mesh> m_Mesh;
 
     // MVP matrices
     glm::mat4 m_ModelMatrix{0};
@@ -72,6 +70,8 @@ class Renderer
 
     // Statistics
     int m_DrawCalls{};
+
+    void RenderWorld(const World &world);
 };
 
 } // namespace BloxxEngine
