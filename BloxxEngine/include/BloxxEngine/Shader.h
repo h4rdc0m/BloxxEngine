@@ -32,8 +32,8 @@ class Shader
     GLuint m_RendererID;
 
     // Helper functions
-    std::string LoadShaderSource(const std::string &path);
-    GLuint CompileShader(GLenum type, const std::string &source);
+    static std::string LoadShaderSource(const std::string &path);
+    static GLuint CompileShader(GLenum type, const std::string &source);
     GLuint CreateProgram(GLuint vertexShader, GLuint fragmentShader);
     GLint GetUniformLocation(const std::string &name);
 

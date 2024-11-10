@@ -4,6 +4,8 @@
  */
 
 #include "BloxxEngine/Shader.h"
+#include "BloxxEngine/Core/Log.h"
+#include "BloxxEngine/File.h"
 
 #include <fstream>
 #include <iostream>
@@ -82,13 +84,15 @@ void Shader::SetUniformVec3(const std::string &name, const glm::vec3 &value)
 
 std::string Shader::LoadShaderSource(const std::string &path)
 {
-
-    std::ifstream file(path);
+    auto absPath = GetAbsolutePathToFile(path);
+    std::ifstream file(absPath, std::ios::in);
     if (!file.is_open())
     {
-        std::cerr << "Warning: Could not open file at " << path << std::endl;
+        BE_CORE_WARN("Warning: Could not open file at {}", absPath);
+        perror("Error opening file");
         return "";
     }
+
 
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();

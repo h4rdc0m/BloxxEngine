@@ -152,8 +152,9 @@ bool Engine::InitGLFW()
 
     // Set window hints for OpenGL version and profile
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     m_Window = glfwCreateWindow(static_cast<int>(m_Data->Width), static_cast<int>(m_Data->Height),
                                 m_Data->Title.c_str(), nullptr, nullptr);

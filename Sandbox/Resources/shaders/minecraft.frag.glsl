@@ -1,4 +1,4 @@
-#version 460 core
+#version 330 core
 
 // Input from Vertex Shader
 in vec3 FragPos;

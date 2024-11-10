@@ -33,7 +33,11 @@ void World::Update(float deltaTime)
 
 void World::Draw()
 {
-
+    std::lock_guard<std::mutex> lock(m_ChunkMeshesMutex);
+    for (const auto &[position, mesh] : m_ChunkMeshes)
+    {
+        mesh->Draw();
+    }
 }
 
 std::shared_ptr<Chunk> World::GetChunk(int x, int z) const
@@ -53,8 +57,7 @@ void World::AddChunk(int x, int z)
     // Create a new chunk and initialize its blocks
     auto chunk = std::make_shared<Chunk>(x, z);
 
-
-    auto future = m_Executor.async([this, chunk = std::move(chunk), x, z]() mutable {
+    m_Executor.async([this, chunk = std::move(chunk), x, z]() mutable {
         chunk->GenerateTerrain(x, z, WORLD_SEED);
 
         // Mark chunk as ready
@@ -67,7 +70,7 @@ void World::AddChunk(int x, int z)
         }
     });
 
-    GenerateMeshes();
+    m_Executor.async([this]() mutable { GenerateMeshes(); });
 }
 void World::RemoveChunk(int x, int z)
 {
@@ -97,7 +100,7 @@ void World::SetBlock(const int x, const int y, const int z, Block *id, const Blo
 }
 void World::GenerateMeshes()
 {
-    std::lock_guard<std::mutex> lock(m_ChunksMutex);
+    std::lock_guard<std::mutex> lock(m_ChunkMeshesMutex);
 
     for (const auto &[position, chunk] : m_Chunks)
     {
@@ -117,8 +120,6 @@ void World::GenerateMeshes()
 
             // Generate optimized vertices and indices for the chunk, we're using CCW triangles
             GenerateChunkMesh(chunk, lChunk, rChunk, fChunk, bChunk, vertices, indices);
-
-
         }
     }
 }
@@ -131,34 +132,34 @@ void World::GenerateChunkMesh(const std::shared_ptr<Chunk> &chunk, const std::sh
     // Greedy meshing algorithm
     for (size_t blockFace = 0; blockFace < 6; ++blockFace)
     {
-        std::array<int, 3> u{{0, 0, 0}};
-        std::array<int, 3> v{{0, 0, 0}};
+        glm::vec3 u{0, 0, 0};
+        glm::vec3 v{0, 0, 0};
 
         switch (blockFace)
         {
         case 0:
-            v = {{1, 0, 0}};
-            u = {{0, 0, 1}};
+            v = {1, 0, 0};
+            u = {0, 0, 1};
             break; // Back Face
         case 1:
-            v = {{1, 0, 0}};
-            u = {{0, 0, 1}};
+            v = {1, 0, 0};
+            u = {0, 0, 1};
             break; // Front Face
         case 2:
-            v = {{0, 1, 0}};
-            u = {{1, 0, 0}};
+            v = {0, 1, 0};
+            u = {1, 0, 0};
             break; // Bottom Face
         case 3:
-            v = {{0, 1, 0}};
-            u = {{1, 0, 0}};
+            v = {0, 1, 0};
+            u = {1, 0, 0};
             break; // Top Face
         case 4:
-            v = {{1, 0, 0}};
-            u = {{0, 1, 0}};
+            v = {1, 0, 0};
+            u = {0, 1, 0};
             break; // Left Face
         case 5:
-            v = {{1, 0, 0}};
-            u = {{0, 1, 0}};
+            v = {1, 0, 0};
+            u = {0, 1, 0};
             break; // Right Face
         }
 
@@ -177,22 +178,40 @@ void World::GenerateChunkMesh(const std::shared_ptr<Chunk> &chunk, const std::sh
                         switch (blockFace)
                         {
                         case 0:
-                            shouldCull = chunk->GetBlock(d1, d2, d3 - 1)->IsSolid();
+                            if (d3 == 0)
+                                shouldCull = leftChunk && leftChunk->GetBlock(d1, d2, CHUNK_DEPTH - 1)->IsSolid();
+                            else
+                                shouldCull = chunk->GetBlock(d1, d2, d3 - 1)->IsSolid();
                             break;
                         case 1:
-                            shouldCull = chunk->GetBlock(d1, d2, d3 + 1)->IsSolid();
+                            if (d3 == CHUNK_DEPTH - 1)
+                                shouldCull = rightChunk && rightChunk->GetBlock(d1, d2, 0)->IsSolid();
+                            else
+                                shouldCull = chunk->GetBlock(d1, d2, d3 + 1)->IsSolid();
                             break;
                         case 2:
-                            shouldCull = chunk->GetBlock(d1, d2 - 1, d3)->IsSolid();
+                            if (d2 == 0)
+                                shouldCull = backChunk && backChunk->GetBlock(d1, CHUNK_HEIGHT - 1, d3)->IsSolid();
+                            else
+                                shouldCull = chunk->GetBlock(d1, d2 - 1, d3)->IsSolid();
                             break;
                         case 3:
-                            shouldCull = chunk->GetBlock(d1, d2 + 1, d3)->IsSolid();
+                            if (d2 == CHUNK_HEIGHT - 1)
+                                shouldCull = frontChunk && frontChunk->GetBlock(d1, 0, d3)->IsSolid();
+                            else
+                                shouldCull = chunk->GetBlock(d1, d2 + 1, d3)->IsSolid();
                             break;
                         case 4:
-                            shouldCull = chunk->GetBlock(d1 - 1, d2, d3)->IsSolid();
+                            if (d1 == 0)
+                                shouldCull = leftChunk && leftChunk->GetBlock(CHUNK_WIDTH - 1, d2, d3)->IsSolid();
+                            else
+                                shouldCull = chunk->GetBlock(d1 - 1, d2, d3)->IsSolid();
                             break;
                         case 5:
-                            shouldCull = chunk->GetBlock(d1 + 1, d2, d3)->IsSolid();
+                            if (d1 == CHUNK_WIDTH - 1)
+                                shouldCull = rightChunk && rightChunk->GetBlock(0, d2, d3)->IsSolid();
+                            else
+                                shouldCull = chunk->GetBlock(d1 + 1, d2, d3)->IsSolid();
                             break;
                         default:
                             shouldCull = false;
@@ -202,15 +221,55 @@ void World::GenerateChunkMesh(const std::shared_ptr<Chunk> &chunk, const std::sh
                         if (!shouldCull)
                         {
                             // Add vertices and indices for this face
-                            // Note: Add actual mesh data generation logic here
+                            glm::vec3 position(d1, d2, d3);
+                            glm::vec3 normal;
+                            switch (blockFace)
+                            {
+                            case 0:
+                                normal = glm::vec3(0.0f, 0.0f, -1.0f);
+                                break;
+                            case 1:
+                                normal = glm::vec3(0.0f, 0.0f, 1.0f);
+                                break;
+                            case 2:
+                                normal = glm::vec3(0.0f, -1.0f, 0.0f);
+                                break;
+                            case 3:
+                                normal = glm::vec3(0.0f, 1.0f, 0.0f);
+                                break;
+                            case 4:
+                                normal = glm::vec3(-1.0f, 0.0f, 0.0f);
+                                break;
+                            case 5:
+                                normal = glm::vec3(1.0f, 0.0f, 0.0f);
+                                break;
+                            }
 
-                            vertices.push_back(/* Vertex data */);
-                            indices.push_back(/* Index data */);
+                            std::array<glm::vec3, 4> faceVertices{glm::vec3(position + u), glm::vec3(position + u + v),
+                                                                  glm::vec3(position + v), glm::vec3(position)};
+
+                            size_t indexStart = vertices.size();
+                            for (const auto &vertexPos : faceVertices)
+                            {
+                                vertices.emplace_back(Vertex{vertexPos, normal, glm::vec2(0.0f)});
+                            }
+
+                            indices.push_back(static_cast<uint32_t>(indexStart + 0));
+                            indices.push_back(static_cast<uint32_t>(indexStart + 1));
+                            indices.push_back(static_cast<uint32_t>(indexStart + 2));
+                            indices.push_back(static_cast<uint32_t>(indexStart + 2));
+                            indices.push_back(static_cast<uint32_t>(indexStart + 3));
+                            indices.push_back(static_cast<uint32_t>(indexStart + 0));
                         }
                     }
                 }
             }
         }
     }
+}
+void World::SetupMeshData()
+{
+    auto mesh = std::make_shared<Mesh>(vertices, indices);
+    m_ChunkMeshes[{chunk->GetChunkX(), chunk->GetChunkZ()}] = mesh;
 }
 } // namespace BloxxEngine

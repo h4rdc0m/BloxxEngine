@@ -4,6 +4,7 @@
  */
 
 #include "BloxxEngine/Texture.h"
+#include "BloxxEngine/File.h"
 
 #include "spdlog/fmt/bundled/chrono.h"
 #define STB_IMAGE_IMPLEMENTATION
@@ -15,17 +16,17 @@ namespace BloxxEngine
 {
 
 Texture::Texture(const std::string &filePath, const FilterMode filterMode, const WrapMode wrapMode)
-    : m_RendererID(0), m_FilePath(filePath), m_LocalBuffer(nullptr), m_Width(0), m_Height(0), m_BPP(0)
+    : m_RendererID(0), m_LocalBuffer(nullptr), m_Width(0), m_Height(0), m_BPP(0)
 {
     // Flip the image vertically during loading
     stbi_set_flip_vertically_on_load(true);
-
+    m_FilePath = GetAbsolutePathToFile(filePath);
     // Load the image
-    m_LocalBuffer = stbi_load(filePath.c_str(), &m_Width, &m_Height, &m_BPP, 4);
+    m_LocalBuffer = stbi_load(m_FilePath.c_str(), &m_Width, &m_Height, &m_BPP, 4);
     if (!m_LocalBuffer)
     {
 
-        std::cerr << "Failed to load " << filePath << ", with error: " << stbi_failure_reason() << std::endl;
+        std::cerr << "Failed to load " << m_FilePath << ", with error: " << stbi_failure_reason() << std::endl;
         return;
     }
 

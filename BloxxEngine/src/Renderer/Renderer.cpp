@@ -41,10 +41,10 @@ Renderer::~Renderer() = default;
 bool Renderer::Init()
 {
     // Load shaders
-    m_Shader = std::make_unique<Shader>("Resources/shaders/block.vert.glsl", "Resources/shaders/minecraft.frag.glsl");
+    m_Shader = std::make_unique<Shader>("shaders/block.vert.glsl", "shaders/minecraft.frag.glsl");
     // Load texture
     m_BaseColorTexture =
-        std::make_unique<Texture>("./Resources/textures/stone.png",
+        std::make_unique<Texture>("textures/stone.png",
                                   Texture::FilterMode::Nearest); // Provide the path to your texture image
 
     // Set up matrices
@@ -72,7 +72,7 @@ void Renderer::Shutdown()
     ImGui::DestroyContext();
 }
 
-void Renderer::Render(const World &world)
+void Renderer::Render(World &world)
 {
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -143,9 +143,9 @@ void Renderer::ImGuiRender()
                 m_Camera->Position.z);
     ImGui::End();
 }
-void Renderer::RenderWorld(const World &world)
+void Renderer::RenderWorld(World &world)
 {
-
+    world.Draw();
 }
 
 } // namespace BloxxEngine

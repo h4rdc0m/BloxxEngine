@@ -29,7 +29,7 @@ class Renderer final
     virtual ~Renderer();
 
     bool Init();
-    void Render(const World &world);
+    void Render(World &world);
     void Update(float deltaTime);
     void Shutdown();
 
@@ -71,7 +71,7 @@ class Renderer final
     // Statistics
     int m_DrawCalls{};
 
-    void RenderWorld(const World &world);
+    void RenderWorld(World &world);
 };
 
 } // namespace BloxxEngine

@@ -62,11 +62,13 @@ class World
 
     // Mutex for thread safety
     mutable std::mutex m_ChunksMutex;
+    mutable std::mutex m_ChunkMeshesMutex;
 
     // Taskflow executor
     tf::Executor m_Executor;
 
     void GenerateMeshes();
+    void SetupMeshData();
     void GenerateChunkMesh(const std::shared_ptr<Chunk> &chunk, const std::shared_ptr<Chunk> &leftChunk,
                                   const std::shared_ptr<Chunk> &rightChunk, const std::shared_ptr<Chunk> &frontChunk,
                                   const std::shared_ptr<Chunk> &backChunk, std::vector<Vertex> &vertices,
