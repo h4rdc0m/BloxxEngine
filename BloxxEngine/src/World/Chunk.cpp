@@ -87,7 +87,7 @@ void Chunk::AddFace(const glm::vec3 &blockPosition, const std::array<glm::vec3, 
     m_Vertices.push_back(v3);
 
     // Calculate the starting index for the indices
-    GLuint index = static_cast<GLuint>(m_Indices.size()) - 4;
+    GLuint index = static_cast<GLuint>(m_Vertices.size()) - 4;
     m_Indices.push_back(index);
     m_Indices.push_back(index + 1);
     m_Indices.push_back(index + 2);
